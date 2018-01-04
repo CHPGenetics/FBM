@@ -1,8 +1,10 @@
 # FBM
 
-Basic user manual 
+## Basic user manual 
 In R, call *BI.cpp* using 
+```
 > sourceCpp(paste(PATH, "/BI.cpp", sep=""))
+```
 After data is stored as a list `data`, following instructions in *example.R*, call full MCMC run by
 ```
 > results <- BIcpp(data, nItr, seed, "BI")
