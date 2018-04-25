@@ -124,7 +124,7 @@ simulateData <- function(nSample, nGene, nMethy, nC, nCausalGene, exchangeable=F
         }
 
         for(n in 1:nSample){
-            gene[n,] <- mvrnorm(nGene, geneMTrue[n,], Sigma=covMat)
+            gene[n,] <- mvrnorm(1, geneMTrue[n,], Sigma=covMat)
         }
     }
 
