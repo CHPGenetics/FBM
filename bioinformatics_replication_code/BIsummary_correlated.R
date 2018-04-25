@@ -119,7 +119,7 @@ simulateData <- function(nSample, nGene, nMethy, nC, nCausalGene, exchangeable=F
         tmpFill <- epsilonGeneMbar^2
         for(k1 in 1:nGene){
             for(k2 in 1:nGene){
-                covMat[k1, k2] <- tmpFill^(abs(k1-k2))
+                covMat[k1, k2] <- tmpFill*r^(abs(k1-k2))
             }
         }
 
