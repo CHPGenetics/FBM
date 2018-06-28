@@ -10,7 +10,7 @@ library(RcppGSL)
 library(scales)
 
 Sys.setenv("PKG_CXXFLAGS"="-std=c++11")
-sourceCpp("~/BI/BI.cpp") #put in the path of source code BI.cpp here
+sourceCpp("~/fbm/FBM.cpp") #put in the path of source code FBM.cpp here
 
 localTest <- 0
 singleTest <- 0
@@ -114,19 +114,27 @@ simulateData <- function(nSample, nGene, nMethy, nC, nCausalGene, exchangeable=F
                                         #         effectiveMethy[which(mapMethy==k)] <- 1
                                         #    }
                                         #}
-    
+
     if(exchangeable==TRUE){
         for (k in 1:nGene){
             gene[,k] <- rnorm(nSample, nuGene[k], etaGene[k])
         }
     } else {
-        for (k in 1:nGene){
-            geneMTrue[,k] <- omegaTrue[k] * apply(as.matrix(methy[,which(mapMethy==k & effectiveMethy==1)]), 1, sum) 
-            tmpGeneMbarTrue <- rnorm(nSample, 0, epsilonGeneMbar) # when geneMbar is purely residual
-                                        #            tmpGeneMbarTrue <- rnorm(nSample, 0.5*apply(as.matrix(C),1,sum), epsilonGeneMbar) #fix, when geneMbar is an dependent on C term
-                                        #            omega0tmp <- rnorm(1,0,1)
-                                        #            tmpGeneMbarTrue <- rnorm(nSample, omega0tmp*apply(as.matrix(C),1,sum), epsilonGeneMbar)
-            gene[,k] <- geneMTrue[,k] + tmpGeneMbarTrue
+                                        #now generate gene with covariance strucuture
+        for(k in 1:nGene){
+            geneMTrue[,k] <- omegaTrue[k] * apply(as.matrix(methy[,which(mapMethy==k & effectiveMethy==1)]), 1, sum)
+        }
+        r <- 0.2 #0.2 or 0.8
+        covMat <- matrix(epsilonGeneMbar^2, nGene, nGene)
+        tmpFill <- epsilonGeneMbar^2
+        for(k1 in 1:nGene){
+            for(k2 in 1:nGene){
+                covMat[k1, k2] <- tmpFill*r^(abs(k1-k2))
+            }
+        }
+
+        for(n in 1:nSample){
+            gene[n,] <- mvrnorm(1, geneMTrue[n,], Sigma=covMat)
         }
     }
 
@@ -378,15 +386,15 @@ estimating <- function(data, result,wd, testData){
     omegaMeanEst <- median(omegaEst)
     omegaSd <- sd(omegaEst)
     
-    write.table(table, paste(wd, "/estimates",sep=""),
+    write.table(table, paste(wd, "/estimatesMain",sep=""),
                 sep="&", quote=F, col.names=F, row.names=F, eol="\\\\\n")
     
-    cat("mean(omega)\n",file=paste(wd, "/estimatesAll", sep=""),append=T)
-    cat(omegaMeanEst, file=paste(wd, "/estimatesAll", sep=""),append=T, sep=",")
-    cat("\nsigmaEst,tauMEst,tauMbarEst\n",file=paste(wd, "/estimatesAll", sep=""),append=T)
-    cat(c(sigmaEst,tauMEst,tauMbarEst),file=paste(wd, "/estimatesAll", sep=""),append=T, sep=",")
-    cat("\nsigmakEst\n",file=paste(wd, "/estimatesAll", sep=""),append=T)
-    cat(sigmakEst, file=paste(wd, "/estimatesAll", sep=""),append=T, sep=",")
+    cat("mean(omega)\n",file=paste(wd, "/estimatesOther", sep=""),append=T)
+    cat(omegaMeanEst, file=paste(wd, "/estimatesOther", sep=""),append=T, sep=",")
+    cat("\nsigmaEst,tauMEst,tauMbarEst\n",file=paste(wd, "/estimatesOther", sep=""),append=T)
+    cat(c(sigmaEst,tauMEst,tauMbarEst),file=paste(wd, "/estimatesOther", sep=""),append=T, sep=",")
+    cat("\nsigmakEst\n",file=paste(wd, "/estimatesOther", sep=""),append=T)
+    cat(sigmakEst, file=paste(wd, "/estimatesOther", sep=""),append=T, sep=",")
     
     return(list(gammaMEst=gammaMEst, gammaMbarEst=gammaMbarEst, gammaCEst=gammaCEst, omegaEst=omegaEst,omegaMeanEst=omegaMeanEst, IMEst=IMEst,IMbarEst=IMbarEst, sigmaEst=sigmaEst, tauMEst=tauMEst, tauMbarEst=tauMbarEst, sigmakEst=sigmakEst, MSEyHatEst = MSEyHatEst, gammaMSd=gammaMSd, gammaMbarSd=gammaMbarSd, gammaCSd=gammaCSd, omegaSd=omegaSd, qM=qM, qMbar=qMbar))
 }
@@ -401,6 +409,7 @@ MCAR <- TRUE
 
 if( fullRun | multipleReplicates ){
     wd <- args[1]
+dir.create(wd)
     setwd(wd)
 
     noCFlag <- 0 #flag for no clinical variable input
@@ -495,8 +504,10 @@ if( fullRun | multipleReplicates ){
                                         #FULL
         if(thetaGene==0.5 & thetaMethy==0){
             set.seed(seed)
-            biFull[[r]] <- BIcpp(dataFull[[r]], nItr, seed, "Full")
-            wdSub <- paste(wd,"/n",n,"_r",r,"_Full",sep="")
+          print(paste("Full",Sys.time())) #test
+          biFull[[r]] <- FBMcpp(dataFull[[r]], nItr, seed, "Full")
+          print(paste("Full",Sys.time())) #test
+          wdSub <- paste(wd,"/n",n,"_r",r,"_Full",sep="")
             dir.create(wdSub)
             estFull[[r]] <- estimating(dataFull[[r]],biFull[[r]],wdSub, testData[[r]])
             plotting(dataFull[[r]], biFull[[r]], wdSub)
@@ -505,7 +516,9 @@ if( fullRun | multipleReplicates ){
         
                                         #BI
         set.seed(seed)
-        bi[[r]] <- BIcpp(data[[r]], nItr, seed, "BI")
+        print(paste("FBM",Sys.time())) #test
+        bi[[r]] <- FBMcpp(data[[r]], nItr, seed, "BI")
+        print(paste("FBM",Sys.time())) #test
         wdSub <- paste(wd,"/n",n,"_r",r,sep="")
         dir.create(wdSub)
         est[[r]] <- estimating(data[[r]],bi[[r]],wdSub,testData[[r]])
@@ -515,7 +528,7 @@ if( fullRun | multipleReplicates ){
                                         #CC
 
         set.seed(seed)
-        biCC[[r]] <- BIcpp(dataCC[[r]], nItr, seed, "CC")
+        biCC[[r]] <- FBMcpp(dataCC[[r]], nItr, seed, "CC")
         wdSub <- paste(wd,"/n",n,"_r",r,"_CC",sep="")
         dir.create(wdSub)
         estCC[[r]] <- estimating(dataCC[[r]],biCC[[r]],wdSub,testData[[r]])
