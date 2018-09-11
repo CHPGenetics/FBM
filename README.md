@@ -13,4 +13,5 @@ MCMC results are saved in list `results`, to be estimated. Despite what's provid
 
 *In case issues raised without being fixed in a timely matter, please contact author directly at fangz.ark@gmail.com*
 
-_Reference_ Zhou Fang, Tianzhou Ma, Gong Tang, Li Zhu, Qi Yan, Ting Wang, Juan C Celedón, Wei Chen, George C Tseng; Bayesian integrative model for multi-omics data with missingness, Bioinformatics, , bty775, https://doi.org/10.1093/bioinformatics/bty775
+**Reference**
+Zhou Fang, Tianzhou Ma, Gong Tang, Li Zhu, Qi Yan, Ting Wang, Juan C Celedón, Wei Chen, George C Tseng; Bayesian integrative model for multi-omics data with missingness, Bioinformatics, , bty775, https://doi.org/10.1093/bioinformatics/bty775
