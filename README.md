@@ -15,7 +15,7 @@ In case issues raised without being fixed in a timely matter, please contact aut
 
 ## Toy example 
 The data files under toy_example_data folder can be read by toy_example.R.
-![alt text](https://github.com/CHPGenetics/FBM/blob/master/toy_example_data/Toy_example_gene_effect_estimates.png)
+![Alt text](https://github.com/CHPGenetics/FBM/blob/master/toy_example_data/Toy_example_gene_effect_estimates.jpeg)
 
 **Reference**
 Zhou Fang, Tianzhou Ma, Gong Tang, Li Zhu, Qi Yan, Ting Wang, Juan C Celedón, Wei Chen, George C Tseng; Bayesian integrative model for multi-omics data with missingness, Bioinformatics, , bty775, https://doi.org/10.1093/bioinformatics/bty775
